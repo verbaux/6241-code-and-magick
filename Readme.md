@@ -1,7 +1,7 @@
 # Личный проект «Код и Магия» [![Build status][travis-image]][travis-url] [![Dependency status][dependency-image]][dependency-url]
 
 * Студент: [Николай Журавлев](https://up.htmlacademy.ru/javascript/6/user/6241).
-* Наставник: `Неизвестно`.
+* Наставник: `Андрей Градусов`(https://htmlacademy.ru/profile/id182375).
 
 ---
 
