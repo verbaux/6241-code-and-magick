@@ -188,27 +188,10 @@ window.Game = (function() {
    * @type {{1: string[], 2: string[], 3: string[], 4: string[]}}
    */
   var messages = {
-    1: [
-      'Это победа!',
-      'Вы одолели мировое зло и теперь',
-      'процветание ждет этот мир.',
-      'Пока зло не поднимет голову...'
-    ],
-    2: [
-      'Вы погибли!',
-      'Бороться со злом стало некому,',
-      'мир пришел в упадок, и скоро',
-      'никто не вспомнит ваше имя'
-    ],
-    3: [
-      'Время остановлено!',
-      'Но поторопитесь, зло не дремлет'
-    ],
-    4: [
-      'Управляйте стрелками, стреляйте',
-      'шифтом и спасите этот мир!',
-      'Нажмите Space, чтобы начать'
-    ]
+    1: 'Это победа! Вы одолели мировое зло и теперь процветание ждет этот мир. Пока зло не поднимет голову...',
+    2: 'Вы погибли! Бороться со злом стало некому, мир пришел в упадок, и скоро никто не вспомнит ваше имя',
+    3: 'Время остановлено! Но поторопитесь, зло не дремлет',
+    4: 'Управляйте стрелками, стреляйте шифтом и спасите этот мир! Нажмите Space, чтобы начать'
   };
 
   /**
@@ -432,7 +415,7 @@ window.Game = (function() {
       if (evt.keyCode === 32 && !this._deactivated) {
         evt.preventDefault();
         var needToRestartTheGame = this.state.currentStatus === Verdict.WIN ||
-          this.state.currentStatus === Verdict.FAIL;
+            this.state.currentStatus === Verdict.FAIL;
         this.initializeLevelAndStart(this.level, needToRestartTheGame);
 
         window.removeEventListener('keydown', this._pauseListener);
@@ -452,7 +435,11 @@ window.Game = (function() {
      * Рисуем "облако" с текстом
      */
     _drawClouds: function(message) {
-      var messageLength = message.length;
+      this.ctx.fillStyle = '#00F';
+      this.ctx.font = '16px PT Mono';
+
+      var messageArray = this._calcCloudText(message, cloudParams.width - 10),
+        messageAreayLength = messageArray.length;
 
       /**
        * Рисуем "облако"
@@ -477,10 +464,30 @@ window.Game = (function() {
 
       _drawCloud.call(this, cloudStartCoords.map(function(coord) {
         return coord + 5;
-      }), '#000', messageLength);
-      _drawCloud.call(this, cloudStartCoords, '#fff', messageLength);
+      }), '#000', messageAreayLength);
+      _drawCloud.call(this, cloudStartCoords, '#fff', messageAreayLength);
 
-      this._drawTexts(cloudStartCoords, message);
+      this._drawTexts(cloudStartCoords, messageArray);
+    },
+
+    _calcCloudText: function(message, width) {
+      var messageWordsArray = message.split(' ');
+      var messageFinArray = [];
+      var tempFirstLine = '';
+      var tempSecondLine = '';
+
+      for (var i = 0; i < messageWordsArray.length; i++) {
+        tempFirstLine = tempFirstLine + messageWordsArray[i] + ' ';
+
+        if (this.ctx.measureText(tempFirstLine).width < width ) {
+          tempSecondLine = tempFirstLine;
+        } else {
+          messageFinArray.push(tempSecondLine);
+          tempFirstLine = messageWordsArray[i] + ' ';
+        }
+      }
+      messageFinArray.push(tempFirstLine);
+      return messageFinArray;
     },
 
     /**
@@ -615,8 +622,8 @@ window.Game = (function() {
             })[0];
 
             return me.state === ObjectState.DISPOSED ?
-              Verdict.FAIL :
-              Verdict.CONTINUE;
+                Verdict.FAIL :
+                Verdict.CONTINUE;
           },
 
           /**
@@ -635,8 +642,8 @@ window.Game = (function() {
            */
           function checkTime(state) {
             return Date.now() - state.startTime > 3 * 60 * 1000 ?
-              Verdict.FAIL :
-              Verdict.CONTINUE;
+                Verdict.FAIL :
+                Verdict.CONTINUE;
           }
         ];
       }
@@ -684,8 +691,8 @@ window.Game = (function() {
         if (object.sprite) {
           var image = new Image(object.width, object.height);
           image.src = (object.spriteReversed && object.direction & Direction.LEFT) ?
-            object.spriteReversed :
-            object.sprite;
+              object.spriteReversed :
+              object.sprite;
           this.ctx.drawImage(image, object.x, object.y, object.width, object.height);
         }
       }, this);
