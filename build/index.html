@@ -82,7 +82,7 @@
 
     <fieldset class="review-form-group">
       <label for="review-name" class="review-form-label">Имя</label><br>
-      <input type="text" name="review-name" id="review-name" class="review-form-field review-form-field-name">
+      <input type="text" name="review-name" id="review-name" class="review-form-field review-form-field-name" required>
     </fieldset>
 
     <fieldset class="review-form-group">
@@ -91,11 +91,11 @@
     </fieldset>
 
     <div class="review-form-controls">
-      <button class="review-form-control review-submit" type="submit">Добавить отзыв</button>
+      <button class="review-form-control review-submit" type="submit" disabled>Добавить отзыв</button>
       <div class="review-form-control review-fields">
         Осталось заполнить:<br>
         <label for="review-name" class="review-fields-label review-fields-name">имя</label>
-        <label for="review-text" class="review-fields-label review-fields-text">отзыв</label>
+        <label for="review-text" class="review-fields-label review-fields-text invisible">отзыв</label>
       </div>
     </div>
   </form>
