@@ -43,15 +43,15 @@ window.form = (function() {
 
   /**
    * переключаем аттрибут
-   * @param glagInputAttr
+   * @param flagInputAttr
    * @param target
    * @param attr
    * @private
    */
-  var _toggleFieldAttribute = function(glagInputAttr, target, attr) {
-    if (glagInputAttr && !target.hasAttribute(attr)) {
+  var _toggleFieldAttribute = function(flagInputAttr, target, attr) {
+    if (flagInputAttr && !target.hasAttribute(attr)) {
       target.setAttribute(attr, '');
-    } else if (!glagInputAttr && target.hasAttribute(attr)) {
+    } else if (!flagInputAttr && target.hasAttribute(attr)) {
       target.removeAttribute(attr);
     }
   };
