@@ -1,11 +1,16 @@
 'use strict';
 
+var browserCookies = require('browser-cookies');
+
 window.form = (function() {
-  var formContainer = document.querySelector('.overlay-container'),
+  var DEFAULT_MARK_ENTITY = 3,
+    COOKIES_TIME_STARTING_POINT = new Date(1906, 11, 9);
+
+  var
+    formContainer = document.querySelector('.overlay-container'),
     formCloseButton = document.querySelector('.review-form-close'),
     reviewForm = document.querySelector('.review-form'), // форма
     reviewMarkCollection = reviewForm['review-mark'], // радиобатон оценка
-    reviewTextFields = reviewForm.querySelectorAll('.review-form-field'), // все текстовые поля
     reviewName = reviewForm['review-name'], // поле Имя
     reviewText = reviewForm['review-text'], // поле Отзыв
     reviewSubmit = reviewForm.querySelector('.review-submit'), // кнопка Добавить
@@ -109,6 +114,11 @@ window.form = (function() {
     _isFieldsValid();
   };
 
+  /**
+   * Проверяем, на каком элементе сработало событие
+   * @param e
+   * @private
+   */
   var _checkFromEventTarget = function(e) {
     if (e.target.name === 'review-mark') {
       _checkReviewMark();
@@ -116,16 +126,79 @@ window.form = (function() {
   };
 
   /**
+   * рассчитываем количество дней жизни куков
+   * @returns {number}
+   * @private
+   */
+  var _calcCookiesExpireDate = function() {
+    var currentDate = new Date(),
+      daysCounter = 0,
+      pointStartDate = COOKIES_TIME_STARTING_POINT;
+
+    if (currentDate <= pointStartDate) {
+      pointStartDate.setFullYear((currentDate.getFullYear() - 1));
+    } else {
+      pointStartDate.setFullYear(currentDate.getFullYear());
+    }
+
+    daysCounter = Math.floor((currentDate - pointStartDate) / (1000 * 3600 * 24)); // милисекунды переводим в дни
+
+    return Math.abs(daysCounter);
+  };
+
+  /**
+   * устанавливаем куки при сабмите формы
+   * @private
+   */
+  var _submitReviewForm = function() {
+    var expiresDays = _calcCookiesExpireDate();
+
+    browserCookies.set('review-mark', reviewMarkCollection.value, { expires: expiresDays });
+    browserCookies.set('review-name', reviewName.value, { expires: expiresDays });
+  };
+
+  /**
    * вешаем обработчик события input на текстовые поля
    */
-  reviewTextFields.forEach(function(item) {
-    item.addEventListener('input', _isFieldsValid);
-  });
+  reviewName.addEventListener('input', _isFieldsValid);
+  reviewText.addEventListener('input', _isFieldsValid);
 
   /**
    * вешаем обработчик события change на reviewForm
    */
   reviewForm.addEventListener('change', _checkFromEventTarget);
+
+  /**
+   * вешаем обработчик события submit на reviewForm
+   */
+  reviewForm.addEventListener('submit', _submitReviewForm);
+
+  /**
+   * забираем из куков значения для оценки и имени, если их нет, устанавливаем значения по умолчанию
+   * @private
+   */
+  var _getReviewDefaultValue = function() {
+    var defaultReviewData = {
+      mark: browserCookies.get('review-mark') || DEFAULT_MARK_ENTITY,
+      name: browserCookies.get('review-name') || ''
+    };
+
+    _setReviewDefaultValue(defaultReviewData);
+  };
+
+  /**
+   * устанавливаем полям начальные значения, а также запускаем валидацию
+   * @param defaultData
+   * @private
+   */
+  var _setReviewDefaultValue = function(defaultData) {
+    reviewMarkCollection.value = +defaultData.mark;
+    reviewName.value = defaultData.name;
+
+    _checkReviewMark();
+  };
+
+  _getReviewDefaultValue();
 
   return form;
 })();
