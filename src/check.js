@@ -1,4 +1,4 @@
-var getMessage = function (a, b) {
+var getMessage = function(a, b) {
   var typeOfA = typeof(a),
     typeOfB = typeof(b),
     message = '';
@@ -11,7 +11,7 @@ var getMessage = function (a, b) {
     return stepCounter;
   };
 
-  var countDistanceMeters = function (a, b) {
+  var countDistanceMeters = function(a, b) {
     var metersCounter = 0;
     for (var i = 0; i < a.length; i++) {
       metersCounter += a[i] * b[i];
