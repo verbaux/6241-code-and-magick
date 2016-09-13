@@ -1,45 +1,86 @@
 'use strict';
 
-module.exports = function(reviewElement, data) {
+var Review = function(data, reviewElement) {
+  this.data = data;
+  this.element = reviewElement;
+
+  this.loadTimeout = '1000';
+  this.classImgLoadError = 'review-load-failure';
+  this.ratingEntity = {
+    '1': '',
+    '2': 'two',
+    '3': 'three',
+    '4': 'four',
+    '5': 'five'
+  };
+
+  /**
+   * @param evt
+   * @private
+   */
+  this._onToggleCurrentReview = function(evt) {
+    var
+      reviewClassQuiz = 'review-quiz-answer',
+      reviewClassActiveQuiz = 'review-quiz-answer-active',
+      reviewsQuizCollection;
+
+    if (evt.target.classList.contains(reviewClassQuiz)) {
+      reviewsQuizCollection = evt.currentTarget.querySelectorAll('.' + reviewClassQuiz);
+      reviewsQuizCollection.forEach(function(quiz) {
+        if (quiz === evt.target) {
+          quiz.classList.add(reviewClassActiveQuiz);
+        } else {
+          quiz.classList.remove(reviewClassActiveQuiz);
+        }
+      });
+    }
+  };
+};
+
+Review.prototype.draw = function() {
+  var _elem = this.element.cloneNode(true);
+  var _self = this;
+
+  _elem.querySelector('.review-rating').classList.add('review-rating-' + this.ratingEntity[this.data.rating]);
+  _elem.querySelector('.review-text').textContent = this.data.description;
+
   var
-    IMAGE_LOAD_TIMEOUT = '1000',
-    classImgLoadError = 'review-load-failure',
-    ratingEntity = {
-      '1': '',
-      '2': 'two',
-      '3': 'three',
-      '4': 'four',
-      '5': 'five'
-    }; // модификатор класса рейтинга
-
-  var elem = reviewElement.cloneNode(true);
-
-  elem.querySelector('.review-rating').classList.add('review-rating-' + ratingEntity[data.rating]);
-  elem.querySelector('.review-text').textContent = data.description;
-
-  var
-    avatarElem = elem.querySelector('.review-author'),
+    avatarElem = _elem.querySelector('.review-author'),
     avatar = new Image(),
     avatarLoadTimeout;
-
-  avatar.alt = avatar.title = data.author.name;
 
   avatar.addEventListener('load', function(evt) {
     clearTimeout(avatarLoadTimeout);
     avatarElem.width = avatarElem.height = 124;
     avatarElem.src = evt.target.src;
+    avatarElem.alt = avatarElem.title = _self.data.author.name;
   });
 
   avatar.addEventListener('error', function() {
-    elem.classList.add(classImgLoadError);
+    _elem.classList.add(_self.classImgLoadError);
   });
 
-  avatar.src = data.author.picture;
+  avatar.src = this.data.author.picture;
+
 
   avatarLoadTimeout = setTimeout(function() {
     avatar.src = '';
-    elem.classList.add(classImgLoadError);
-  }, IMAGE_LOAD_TIMEOUT);
+    _elem.classList.add(_self.classImgLoadError);
+  }, _self.loadTimeout);
 
-  return elem;
+  this.element = _elem;
+  this.addQuizListener();
 };
+
+Review.prototype.addQuizListener = function() {
+  var quizBox = this.element.querySelector('.review-quiz');
+
+  quizBox.addEventListener('click', this._onToggleCurrentReview);
+};
+
+Review.prototype.removeQuizListener = function() {
+  var quizBox = this.element.querySelector('.review-quiz');
+  quizBox.removeEventListener('click', this._onToggleCurrentReview);
+};
+
+module.exports = Review;

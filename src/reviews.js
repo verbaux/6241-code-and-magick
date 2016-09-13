@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = function() {
-  var drawReview = require('./review');
+  var Review = require('./review');
   var loadData = require('./load');
 
   var
@@ -26,9 +26,10 @@ module.exports = function() {
   var _getReviews = function() {
     var
       templateReview = document.getElementById('review-template'), // шаблон отзывa
+      reviewsList = document.querySelector('.reviews-list'), // контейнер отзывов
       elemToClone,
       reviewElement,
-      reviewsList = document.querySelector('.reviews-list'); // контейнер отзывов
+      fragmentReviews = document.createDocumentFragment();
 
     if ('content' in templateReview) {
       elemToClone = templateReview.content.querySelector('.review');
@@ -37,9 +38,12 @@ module.exports = function() {
     }
 
     reviewsData.forEach(function(review) {
-      reviewElement = drawReview(elemToClone, review);
-      reviewsList.appendChild(reviewElement);
+      reviewElement = new Review(review, elemToClone);
+      reviewElement.draw();
+      fragmentReviews.appendChild(reviewElement.element);
     });
+
+    reviewsList.appendChild(fragmentReviews);
   };
 
   /**
