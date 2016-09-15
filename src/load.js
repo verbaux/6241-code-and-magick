@@ -1,17 +1,41 @@
 'use strict';
 
-module.exports = function(url, callback) {
-  var
-    callbackName = 'cb' + String(Math.random()).slice(-6),
-    urlData = url + callbackName; // url до данных
+module.exports = function(url, params, callback) {
+  var urlRequest = url;
+  var xhr = new XMLHttpRequest();
 
-  window[callbackName] = function(data) {
-    delete window[callbackName]; // очищаем реестр
-    callback(data); // возвращаем данные
-    document.body.removeChild(scriptBox);
+  /**
+   * получаем параметры для запроса
+   * @param parameters
+   * @returns {string}
+   * @private
+   */
+  var _putRequestParams = function(parameters) {
+    var paramsArray = [];
+
+    for (var key in parameters) {
+      if (parameters.hasOwnProperty(key)) {
+        paramsArray.push(key + '=' + parameters[key]);
+      }
+    }
+
+    return '?' + paramsArray.join('&');
   };
 
-  var scriptBox = document.createElement('script');
-  scriptBox.src = urlData;
-  document.body.appendChild(scriptBox);
+  urlRequest += _putRequestParams(params);
+
+  xhr.open('GET', urlRequest, true);
+  xhr.send();
+
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) {
+      return;
+    }
+
+    if (xhr.status !== 200) {
+      console.log(xhr.status + ': ' + xhr.statusText);
+    } else {
+      callback(JSON.parse(xhr.response));
+    }
+  };
 };
