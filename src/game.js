@@ -71,6 +71,12 @@ module.exports = function() {
     };
 
     /**
+     * длина тротлинга для скролла
+     * @type {number}
+     */
+    var SCROLL_TIMEOUT = 100;
+
+    /**
      * Правила перерисовки объектов в зависимости от состояния игры.
      * @type {Object.<ObjectType, function(Object, Object, number): Object>}
      */
@@ -282,11 +288,15 @@ module.exports = function() {
       this.canvas.width = container.clientWidth;
       this.canvas.height = container.clientHeight;
       this.container.appendChild(this.canvas);
+      this.containerWithMoveBackground = document.querySelector('.header-clouds');
+      this.lastCall = new Date();
+      this.currentBackgroundPositionX = 0;
 
       this.ctx = this.canvas.getContext('2d');
 
       this._onKeyDown = this._onKeyDown.bind(this);
       this._onKeyUp = this._onKeyUp.bind(this);
+      this._onScrollWindow = this._onScrollWindow.bind(this);
       this._pauseListener = this._pauseListener.bind(this);
 
       this.setDeactivated(false);
@@ -782,16 +792,61 @@ module.exports = function() {
         }
       },
 
+      /**
+       * Проверяем видимость элемента на странице
+       * @param elem
+       * @returns {boolean}
+       * @private
+       */
+      _isElementInvisible: function(elem) {
+        return (elem.getBoundingClientRect().bottom < 0);
+      },
+
+      /**
+       * двигаем облака
+       * @private
+       */
+      _moveBackground: function() {
+        this.containerWithMoveBackground.style.backgroundPositionX = window.scrollY * 2 + 'px';
+      },
+
+      /**
+       * событие скролл
+       * @private
+       */
+      _onScrollWindow: function() {
+        if (new Date() - this.lastCall < SCROLL_TIMEOUT) {
+          return;
+        }
+
+        if (this._isElementInvisible(this.container)) {
+          this.setGameStatus(Verdict.PAUSE);
+        }
+
+        if (!this._isElementInvisible(this.containerWithMoveBackground)) {
+          this._moveBackground();
+        }
+
+        this.lastCall = new Date();
+
+      },
+
       /** @private */
       _initializeGameListeners: function() {
+
         window.addEventListener('keydown', this._onKeyDown);
         window.addEventListener('keyup', this._onKeyUp);
+        window.addEventListener('scroll', this._onScrollWindow);
       },
 
       /** @private */
       _removeGameListeners: function() {
         window.removeEventListener('keydown', this._onKeyDown);
         window.removeEventListener('keyup', this._onKeyUp);
+      },
+
+      _removeScrollListener: function() {
+        window.removeEventListener('scroll', this._onScrollWindow);
       }
     };
 

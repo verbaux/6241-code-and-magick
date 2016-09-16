@@ -65,7 +65,7 @@ header {
   z-index: 0;
 
   height: 363px;
-
+  transition: background-position 0.3s ease-out;
   background: url("../img/clouds.png") top center repeat-x;
 }
 
