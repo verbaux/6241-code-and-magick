@@ -83,4 +83,11 @@ Review.prototype.removeQuizListener = function() {
   quizBox.removeEventListener('click', this._onToggleCurrentReview);
 };
 
+Review.prototype.destroyReview = function() {
+  this.removeQuizListener();
+  this.element.parentNode.removeChild(this.element);
+  this.element = null;
+  this.data = null;
+};
+
 module.exports = Review;

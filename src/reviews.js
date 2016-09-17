@@ -5,10 +5,17 @@ module.exports = function() {
   var loadData = require('./load');
 
   var
-    SOURCE_DATA_LINK = '/api/reviews?callback=',
+    SOURCE_DATA_LINK = '/api/reviews',
     reviewFilter = document.querySelector('.reviews-filter'), // блок фильтрации отзывов
+    buttonShowMore = document.querySelector('.reviews-controls-more'), // кнопка показать еще
+    templateReview = document.getElementById('review-template'), // шаблон отзывa
+    reviewsList = document.querySelector('.reviews-list'), // контейнер отзывов
     classInvisible = 'invisible',
-    reviewsData = null;
+    reviewsObjects = [],
+    reviewsData,
+    currentPage = 0,
+    REVIEW_PAGE_SIZE = 3,
+    currentFilter = 'reviews-all';
 
   /**
    * переключаем видимость объекта target
@@ -24,9 +31,12 @@ module.exports = function() {
    * @private
    */
   var _getReviews = function() {
+    if (!reviewsData.length) {
+      _disabledButtonShowMore();
+      return;
+    }
+
     var
-      templateReview = document.getElementById('review-template'), // шаблон отзывa
-      reviewsList = document.querySelector('.reviews-list'), // контейнер отзывов
       elemToClone,
       reviewElement,
       fragmentReviews = document.createDocumentFragment();
@@ -39,11 +49,79 @@ module.exports = function() {
 
     reviewsData.forEach(function(review) {
       reviewElement = new Review(review, elemToClone);
+      reviewsObjects.push(reviewElement);
       reviewElement.draw();
       fragmentReviews.appendChild(reviewElement.element);
     });
 
     reviewsList.appendChild(fragmentReviews);
+  };
+
+  /**
+   * переключаем фильтры
+   * @param evt
+   * @private
+   */
+  var _filterApply = function(evt) {
+    if (!evt.target.classList.contains('reviews-filter-item')) {
+      return;
+    }
+
+    currentPage = 0;
+    currentFilter = evt.target.htmlFor;
+
+    if (buttonShowMore.classList.contains(classInvisible)) {
+      _initButtonShowMore();
+    }
+    reviewsObjects.forEach(function(review) {
+      review.destroyReview();
+    });
+    reviewsObjects = [];
+
+    _loadDataCurrentPage();
+  };
+
+  var _initFilters = function() {
+    reviewFilter.addEventListener('click', _filterApply);
+  };
+
+  /**
+   * получаем данные для текущей страницы
+   */
+  var _loadDataCurrentPage = function() {
+    var params = {
+      from: currentPage * REVIEW_PAGE_SIZE,
+      to: currentPage * REVIEW_PAGE_SIZE + REVIEW_PAGE_SIZE,
+      filter: currentFilter
+    };
+    loadData(SOURCE_DATA_LINK, params, _onLoaded);
+  };
+
+  /**
+   * загружаем и отрисовываем дополнительные данные
+   * @private
+   */
+  var _showMoreReview = function() {
+    currentPage++;
+    _loadDataCurrentPage();
+  };
+
+  /**
+   * показываем кнопку "Показать еще"
+   * @private
+   */
+  var _initButtonShowMore = function() {
+    buttonShowMore.addEventListener('click', _showMoreReview);
+    _toggleVisibility(buttonShowMore);
+  };
+
+  /**
+   * убираем кнопку "Показать еще"
+   * @private
+   */
+  var _disabledButtonShowMore = function() {
+    buttonShowMore.removeEventListener('click', _showMoreReview);
+    _toggleVisibility(buttonShowMore);
   };
 
   /**
@@ -79,5 +157,7 @@ module.exports = function() {
     _toggleVisibility(reviewFilter);
   };
 
-  loadData(SOURCE_DATA_LINK, _onLoaded);
+  _loadDataCurrentPage();
+  _initButtonShowMore();
+  _initFilters();
 };
