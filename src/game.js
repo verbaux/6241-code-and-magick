@@ -2,6 +2,9 @@
 
 module.exports = function() {
   return (function() {
+
+    var throttle = require('./throttle');
+
     /**
      * @const
      * @type {number}
@@ -289,14 +292,15 @@ module.exports = function() {
       this.canvas.height = container.clientHeight;
       this.container.appendChild(this.canvas);
       this.containerWithMoveBackground = document.querySelector('.header-clouds');
-      this.lastCall = new Date();
       this.currentBackgroundPositionX = 0;
 
       this.ctx = this.canvas.getContext('2d');
 
       this._onKeyDown = this._onKeyDown.bind(this);
       this._onKeyUp = this._onKeyUp.bind(this);
-      this._onScrollWindow = this._onScrollWindow.bind(this);
+      this._onScrollWindowInit = this._onScrollWindowInit.bind(this);
+      this._holdChanging = this._holdChanging.bind(this);
+      this._recallHoldChanging = null;
       this._pauseListener = this._pauseListener.bind(this);
 
       this.setDeactivated(false);
@@ -803,6 +807,20 @@ module.exports = function() {
       },
 
       /**
+       * останавливаем анимацию и ставим игру на паузу
+       * @private
+       */
+      _holdChanging: function() {
+        if (this._isElementInvisible(this.container)) {
+          this.setGameStatus(Verdict.PAUSE);
+        }
+
+        if (!this._isElementInvisible(this.containerWithMoveBackground)) {
+          this._moveBackground();
+        }
+      },
+
+      /**
        * двигаем облака
        * @private
        */
@@ -814,29 +832,17 @@ module.exports = function() {
        * событие скролл
        * @private
        */
-      _onScrollWindow: function() {
-        if (new Date() - this.lastCall < SCROLL_TIMEOUT) {
-          return;
-        }
-
-        if (this._isElementInvisible(this.container)) {
-          this.setGameStatus(Verdict.PAUSE);
-        }
-
-        if (!this._isElementInvisible(this.containerWithMoveBackground)) {
-          this._moveBackground();
-        }
-
-        this.lastCall = new Date();
-
+      _onScrollWindowInit: function() {
+        this._recallHoldChanging = throttle(this._holdChanging, SCROLL_TIMEOUT);
+        window.addEventListener('scroll', this._recallHoldChanging);
+        this._recallHoldChanging();
       },
 
       /** @private */
       _initializeGameListeners: function() {
-
         window.addEventListener('keydown', this._onKeyDown);
         window.addEventListener('keyup', this._onKeyUp);
-        window.addEventListener('scroll', this._onScrollWindow);
+        this._onScrollWindowInit();
       },
 
       /** @private */
@@ -846,7 +852,7 @@ module.exports = function() {
       },
 
       _removeScrollListener: function() {
-        window.removeEventListener('scroll', this._onScrollWindow);
+        window.removeEventListener('scroll', this._recallHoldChanging);
       }
     };
 
