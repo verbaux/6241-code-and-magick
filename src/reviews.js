@@ -14,8 +14,9 @@ module.exports = function() {
     reviewsObjects = [],
     reviewsData,
     currentPage = 0,
+    currentFilter = '',
     REVIEW_PAGE_SIZE = 3,
-    currentFilter = 'reviews-all';
+    DEFAULT_FILTER = 'reviews-all';
 
   /**
    * переключаем видимость объекта target
@@ -66,13 +67,39 @@ module.exports = function() {
     if (!evt.target.classList.contains('reviews-filter-item')) {
       return;
     }
-
-    currentPage = 0;
     currentFilter = evt.target.htmlFor;
+
+    _setFilterToStorage();
+    _applyFilter();
 
     if (buttonShowMore.classList.contains(classInvisible)) {
       _initButtonShowMore();
     }
+  };
+
+  /**
+   * получаем значение фильтра из хранилища
+   * @private
+   */
+  var _getFilterFromStorage = function() {
+    currentFilter = localStorage.getItem('filter') || DEFAULT_FILTER;
+  };
+
+  /**
+   * записываем текущий фильтр в хранилище
+   * @private
+   */
+  var _setFilterToStorage = function() {
+    localStorage.setItem('filter', currentFilter);
+  };
+
+  /**
+   * применяем фильтр
+   * @private
+   */
+  var _applyFilter = function() {
+    currentPage = 0;
+
     reviewsObjects.forEach(function(review) {
       review.destroyReview();
     });
@@ -81,7 +108,15 @@ module.exports = function() {
     _loadDataCurrentPage();
   };
 
+  /**
+   * инициализируем фильтры
+   * @private
+   */
   var _initFilters = function() {
+    _getFilterFromStorage();
+    _applyFilter();
+    reviewFilter[currentFilter].checked = true;
+
     reviewFilter.addEventListener('click', _filterApply);
   };
 
@@ -157,7 +192,6 @@ module.exports = function() {
     _toggleVisibility(reviewFilter);
   };
 
-  _loadDataCurrentPage();
   _initButtonShowMore();
   _initFilters();
 };
