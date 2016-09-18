@@ -12,33 +12,31 @@ var Gallery = function(urlPicturesArray) {
   this.controlRight = this.galleryContainer.querySelector('.overlay-gallery-control-right');
   this.controlClose = this.galleryContainer.querySelector('.overlay-gallery-close');
 
-  var _self = this;
+  this.onClickControlClose = this.onClickControlClose.bind(this);
+  this.onClickControlLeft = this.onClickControlLeft.bind(this);
+  this.onClickControlRight = this.onClickControlRight.bind(this);
+};
 
-  this._onClickControlClose = function() {
-    _self.hide();
-  };
+Gallery.prototype.onClickControlLeft = function() {
+  if (this.activePicture === 0) {
+    return;
+  }
+  this.activePicture -= 1;
+  this.setActivePicture(this.activePicture);
+};
 
-  this._onClickControlLeft = function() {
-    if (_self.activePicture === 0) {
-      return;
-    }
-    _self.activePicture -= 1;
-    _self.setActivePicture(_self.activePicture);
-  };
-
-  this._onClickControlRight = function() {
-    if (_self.activePicture === _self.pictures.length - 1) {
-      return;
-    }
-    _self.activePicture += 1;
-    _self.setActivePicture(_self.activePicture);
-  };
+Gallery.prototype.onClickControlRight = function() {
+  if (this.activePicture === this.pictures.length - 1) {
+    return;
+  }
+  this.activePicture += 1;
+  this.setActivePicture(this.activePicture);
 };
 
 Gallery.prototype.show = function(currentPictureNumber) {
-  this.controlClose.addEventListener('click', this._onClickControlClose);
-  this.controlLeft.addEventListener('click', this._onClickControlLeft);
-  this.controlRight.addEventListener('click', this._onClickControlRight);
+  this.controlClose.addEventListener('click', this.onClickControlClose);
+  this.controlLeft.addEventListener('click', this.onClickControlLeft);
+  this.controlRight.addEventListener('click', this.onClickControlRight);
 
   this.picturesCounter.innerHTML = this.pictures.length;
   this.galleryContainer.classList.remove('invisible');
@@ -47,9 +45,9 @@ Gallery.prototype.show = function(currentPictureNumber) {
 };
 
 Gallery.prototype.hide = function() {
-  this.controlClose.removeEventListener('click', this._onClickControlClose);
-  this.controlLeft.removeEventListener('click', this._onClickControlLeft);
-  this.controlRight.removeEventListener('click', this._onClickControlRight);
+  this.controlClose.removeEventListener('click', this.onClickControlClose);
+  this.controlLeft.removeEventListener('click', this.onClickControlLeft);
+  this.controlRight.removeEventListener('click', this.onClickControlRight);
 
   this.galleryContainer.classList.add('invisible');
 };
@@ -66,6 +64,10 @@ Gallery.prototype.setActivePicture = function(currentPictureNumber) {
   this.currentPictureNumber.innerHTML = this.activePicture + 1;
 
   this.galleryPictureBox.appendChild(this.activePictureElem);
+};
+
+Gallery.prototype.onClickControlClose = function() {
+  this.hide();
 };
 
 module.exports = Gallery;

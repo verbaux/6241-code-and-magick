@@ -3,6 +3,7 @@
 var Review = function(data, reviewElement) {
   this.data = data;
   this.element = reviewElement;
+  this.loadAvatar = require('./load-avatar');
 
   this.loadTimeout = '1000';
   this.classImgLoadError = 'review-load-failure';
@@ -14,59 +15,50 @@ var Review = function(data, reviewElement) {
     '5': 'five'
   };
 
-  /**
-   * @param evt
-   * @private
-   */
-  this._onToggleCurrentReview = function(evt) {
-    var
-      reviewClassQuiz = 'review-quiz-answer',
-      reviewClassActiveQuiz = 'review-quiz-answer-active',
-      reviewsQuizCollection;
+  this.onLoadAvatarSuccess = this.onLoadAvatarSuccess.bind(this);
+  this.onLoadAvatarError = this.onLoadAvatarError.bind(this);
+};
 
-    if (evt.target.classList.contains(reviewClassQuiz)) {
-      reviewsQuizCollection = evt.currentTarget.querySelectorAll('.' + reviewClassQuiz);
-      reviewsQuizCollection.forEach(function(quiz) {
-        if (quiz === evt.target) {
-          quiz.classList.add(reviewClassActiveQuiz);
-        } else {
-          quiz.classList.remove(reviewClassActiveQuiz);
-        }
-      });
-    }
-  };
+Review.prototype.toggleCurrentReview = function(evt) {
+  var
+    reviewClassQuiz = 'review-quiz-answer',
+    reviewClassActiveQuiz = 'review-quiz-answer-active',
+    reviewsQuizCollection;
+
+  if (evt.target.classList.contains(reviewClassQuiz)) {
+    reviewsQuizCollection = evt.currentTarget.querySelectorAll('.' + reviewClassQuiz);
+    reviewsQuizCollection.forEach(function(quiz) {
+      if (quiz === evt.target) {
+        quiz.classList.add(reviewClassActiveQuiz);
+      } else {
+        quiz.classList.remove(reviewClassActiveQuiz);
+      }
+    });
+  }
+};
+
+Review.prototype.onLoadAvatarSuccess = function(image) {
+  var img = this.element.querySelector('.review-author');
+  img.src = image.src;
+  img.width = img.height = 124;
+  img.title = this.data.author.name;
+  img.alt = this.data.author.name;
+};
+
+Review.prototype.onLoadAvatarError = function() {
+  this.element.classList.add(this.classImgLoadError);
 };
 
 Review.prototype.draw = function() {
   var _elem = this.element.cloneNode(true);
-  var _self = this;
+  var ratingEntity = this.data.rating;
 
-  _elem.querySelector('.review-rating').classList.add('review-rating-' + this.ratingEntity[this.data.rating]);
+  if (ratingEntity > 0) {
+    _elem.querySelector('.review-rating').classList.add('review-rating-' + this.ratingEntity[ratingEntity]);
+  }
   _elem.querySelector('.review-text').textContent = this.data.description;
 
-  var
-    avatarElem = _elem.querySelector('.review-author'),
-    avatar = new Image(),
-    avatarLoadTimeout;
-
-  avatar.addEventListener('load', function(evt) {
-    clearTimeout(avatarLoadTimeout);
-    avatarElem.width = avatarElem.height = 124;
-    avatarElem.src = evt.target.src;
-    avatarElem.alt = avatarElem.title = _self.data.author.name;
-  });
-
-  avatar.addEventListener('error', function() {
-    _elem.classList.add(_self.classImgLoadError);
-  });
-
-  avatar.src = this.data.author.picture;
-
-
-  avatarLoadTimeout = setTimeout(function() {
-    avatar.src = '';
-    _elem.classList.add(_self.classImgLoadError);
-  }, _self.loadTimeout);
+  this.loadAvatar(this.data.author.picture, this.onLoadAvatarSuccess, this.onLoadAvatarError, this.loadTimeout);
 
   this.element = _elem;
   this.addQuizListener();
@@ -75,12 +67,12 @@ Review.prototype.draw = function() {
 Review.prototype.addQuizListener = function() {
   var quizBox = this.element.querySelector('.review-quiz');
 
-  quizBox.addEventListener('click', this._onToggleCurrentReview);
+  quizBox.addEventListener('click', this.toggleCurrentReview);
 };
 
 Review.prototype.removeQuizListener = function() {
   var quizBox = this.element.querySelector('.review-quiz');
-  quizBox.removeEventListener('click', this._onToggleCurrentReview);
+  quizBox.removeEventListener('click', this.toggleCurrentReview);
 };
 
 Review.prototype.destroyReview = function() {
