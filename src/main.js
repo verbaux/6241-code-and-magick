@@ -38,7 +38,7 @@
       urlPicturesArray = [],
       currentPictureNumber = 0;
 
-    galleryPicturesArray.forEach(function(urlPicture) {
+    [].forEach.call(galleryPicturesArray, function(urlPicture) {
       urlPicturesArray.push(urlPicture.src);
     });
 

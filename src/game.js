@@ -825,7 +825,9 @@ module.exports = function() {
        * @private
        */
       _moveBackground: function() {
-        this.containerWithMoveBackground.style.backgroundPositionX = window.scrollY * 2 + 'px';
+        var scrollPositionY = window.pageYOffset || window.scrollY;
+
+        this.containerWithMoveBackground.style.backgroundPosition = 'calc(50% + ' + scrollPositionY * 2 + 'px) top';
       },
 
       /**
