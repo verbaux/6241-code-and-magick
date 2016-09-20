@@ -53,7 +53,7 @@ Gallery.prototype.hide = function() {
 };
 
 Gallery.prototype.setActivePicture = function(currentPictureNumber) {
-  this.activePicture = currentPictureNumber;
+  this.activePicture = +currentPictureNumber;
 
   if (this.activePictureElem) {
     this.galleryPictureBox.removeChild(this.activePictureElem);
